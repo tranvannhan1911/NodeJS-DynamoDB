@@ -23,7 +23,7 @@ AWS.config.update({
 const client = new AWS.DynamoDB.DocumentClient()
 
 app.get('/', (req, res) => {
-    const {ma_sv, ten_sv, tuoi, sdt, email} = req.query
+    const {ma_sv, ten_sv, tuoi, sdt, email, success, fail} = req.query
 
     const params = {
         TableName: TABLE_NAME
@@ -34,13 +34,18 @@ app.get('/', (req, res) => {
             res.send("Có lỗi xảy ra!")
             return
         }
-        res.render("index.ejs", {data: data.Items, err: {
-            ma_sv: ma_sv,
-            ten_sv: ten_sv,
-            tuoi: tuoi,
-            sdt: sdt,
-            email: email
-        }})
+        res.render("index.ejs", {
+            data: data.Items, 
+            err: {
+                ma_sv: ma_sv,
+                ten_sv: ten_sv,
+                tuoi: tuoi,
+                sdt: sdt,
+                email: email
+            }, 
+            success: success,
+            fail: fail
+        })
     })
 })
 
@@ -109,14 +114,35 @@ app.post('/them-sinh-vien', async (req, res) => {
     client.put(params, (err, data) => {
         if(err){
             console.log(err)
-            res.send("Có lỗi xảy ra, không thể thêm sinh viên!")
+            res.redirect(url.format({
+                pathname:"/",
+                query: {"fail": "Có lỗi xảy ra, không thể thêm sinh viên!"}
+            }))
             return
         }
-        res.redirect("/")
+        res.redirect(url.format({
+            pathname:"/",
+            query: {"success": "Thêm sinh viên thành công!"}
+        }))
     })
 })
 
-app.get('/xoa-sinh-vien', (req, res) => {
+app.get('/xoa-sinh-vien', async (req, res) => {
+
+    let rs = await client.get({
+        TableName: TABLE_NAME,
+        Key: {
+            ma_sv: req.query.ma_sv
+        } 
+    }).promise()
+    if(!rs.Item){
+        res.redirect(url.format({
+            pathname:"/",
+            query: {"fail": "Mã sinh viên không tồn tại!"}
+        }))
+        return
+    }   
+
     const params = {
         TableName: TABLE_NAME,
         Key: {
@@ -126,10 +152,16 @@ app.get('/xoa-sinh-vien', (req, res) => {
     client.delete(params, (err, data) => {
         if(err){
             console.log(err)
-            res.send("Có lỗi xảy ra, không thể xóa sinh viên!")
+            res.redirect(url.format({
+                pathname:"/",
+                query: {"fail": "Có lỗi xảy ra, không thể xóa sinh viên!"}
+            }))
             return
         }
-        res.redirect("/")
+        res.redirect(url.format({
+            pathname:"/",
+            query: {"success": "Xóa sinh viên thành công!"}
+        }))
     })
 })
 

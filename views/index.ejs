@@ -10,7 +10,11 @@
     <style>
         .err{
             color: red;
-            font-weight: 300;
+            font-size: small;
+        }
+        
+        .success{
+            color: green;
             font-size: small;
         }
 
@@ -48,7 +52,8 @@
                     <p class="err"><%=err.email%></p>
                 </div>
                 <div class="mb-3">
-
+                    <p class="success"><%=success%></p>
+                    <p class="err"><%=fail%></p>
                 </div>
                 <div class="mb-3" style="text-align: center;">
                     <button class="btn btn-primary" type="submit">Thêm</button>
